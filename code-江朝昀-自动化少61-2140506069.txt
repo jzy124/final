@@ -1,0 +1,140 @@
+1.1
+import numpy as np
+import cv2
+import matplotlib.pyplot as plt
+
+size = 3
+s = (size - 1) // 2
+
+# Sobel
+# s_y = [-1, -2, -1,
+#        0, 0, 0,
+#        1, 2, 1]
+# s_x = [-1, 0, 1,
+#        -2, 0, 2,
+#        -1, 0, 1]
+
+# Prewitt
+s_y = [-1, -1, -1,
+       0, 0, 0,
+       1, 1, 1]
+s_x = [-1, 0, 1,
+       -1, 0, 1,
+       -1, 0, 1]
+
+img_o = cv2.imread("test6.jpg", 0)
+plt.figure("test6-Roberts")
+img_x = img_o.copy()
+img_y = img_o.copy()
+img = cv2.GaussianBlur(img_o, (3, 3), 0)
+arr = cv2.copyMakeBorder(img, s, s, s, s, cv2.BORDER_CONSTANT, value=0)
+w, h = img.shape
+arr_s = np.zeros((size, size))
+arr_f = np.zeros(pow(size, 2))
+
+for i in range(s, w + s):
+    for j in range(s, h + s):
+        for i1 in range(i - s, i + s + 1):
+            for j1 in range(j - s, j + s + 1):
+                arr_s[i1 - (i - s)][j1 - (j - s)] = arr[i1][j1]
+        arr_f = arr_s.flatten()
+        c_x = 0
+        c_y = 0
+        for k in range(pow(size, 2)):
+            c_x = c_x + s_x[k] * arr_f[k]
+            c_y = c_y + s_y[k] * arr_f[k]
+        img_x[i - s][j - s] = abs(c_x)
+        img_y[i - s][j - s] = abs(c_y)
+
+max_x = img_x.max()
+max_y = img_y.max()
+
+for i in range(w):
+    for j in range(h):
+        img_x[i][j] = int(img_x[i][j] / max_x * 255)
+        img_y[i][j] = int(img_y[i][j] / max_y * 255)
+
+img1 = cv2.addWeighted(img_x, 0.5, img_y, 0.5, 0)
+
+
+plt.subplot(221)
+plt.imshow(img, cmap='gray')
+plt.title("original:test6")
+plt.axis('off')
+
+plt.subplot(222)
+plt.imshow(img_x, cmap='gray')
+plt.title("Grad-X")
+plt.axis('off')
+
+plt.subplot(223)
+plt.imshow(img_y, cmap='gray')
+plt.title("Grad-Y")
+plt.axis('off')
+
+plt.subplot(224)
+plt.imshow(img1, cmap='gray')
+plt.title("Sobel edge detector")
+plt.axis('off')
+
+plt.figure("test6 Prewitt")
+plt.imshow(img1, cmap='gray')
+plt.axis('off')
+
+plt.show()
+
+1.2
+import cv2
+import matplotlib.pyplot as plt
+
+img = cv2.imread("test1.tif", 0)
+
+img1 = cv2.GaussianBlur(img, (3, 3), 0)
+img2 = cv2.Canny(img1, 50, 150)
+
+plt.figure("test6-Canny")
+plt.subplot(121)
+plt.imshow(img, cmap='gray')
+plt.title("original:test6")
+plt.axis('off')
+
+plt.subplot(122)
+plt.imshow(img2, cmap='gray')
+plt.title("Canny algorithm")
+plt.axis('off')
+
+plt.figure("test1 Canny")
+plt.imshow(img2, cmap='gray')
+plt.title("Canny")
+plt.axis('off')
+
+plt.show()
+
+2.
+import cv2
+import matplotlib.pyplot as plt
+import numpy as np
+
+img = cv2.imread("test2.png", 0)
+plt.figure("test2-hough")
+plt.subplot(121)
+plt.imshow(img, cmap='gray')
+plt.title("original:test2")
+plt.axis('off')
+
+edges = cv2.Canny(img, 50, 200)
+lines = cv2.HoughLinesP(edges, 1, np.pi/360, 25, minLineLength=30, maxLineGap=25)
+lines1 = lines[:, 0, :]
+for x1, y1, x2, y2 in lines1[:]:
+    cv2.line(img, (x1, y1), (x2, y2), (0, 255, 0), 2)
+
+plt.subplot(122)
+plt.imshow(img, "gray")
+plt.title("Hough")
+plt.axis('off')
+
+plt.figure("test2 hough")
+plt.imshow(img, "gray")
+plt.axis('off')
+
+plt.show()
